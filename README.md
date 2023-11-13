@@ -1,4 +1,4 @@
-# fastapi-pdp-blog
+# fastapi-pdp-websockets
 
 #### Run the local develop server:
 
