@@ -5,41 +5,39 @@ services:
     build:
       context: .
       dockerfile: docker/dev/web/Dockerfile
-    expose:
-      - 8000
-#    ports:
-#      - "8007:8000"
+    ports:
+      - "8007:8000"
     depends_on:
       - db
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`fastapi.localhost`)"
     volumes:
       - ./app/:/usr/src/web/
     restart: unless-stopped
     networks:
       - separated_network
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.fastapi.rule=Host(`fastapi.localhost`)"
   db:
     image: postgres:13
     env_file:
       - docker/dev/env/.db.env
-    networks:
-      - separated_network
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     restart: always
-  traefik:
-    image: traefik:v2.9.6
-    depends_on:
-      - app
-    ports:
-      - 8009:80
-      - 8081:8080
-    volumes:
-      - "./traefik.dev.toml:/etc/traefik/traefik.toml"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - separated_network
+#  traefik:
+#    image: traefik:v2.9.6
+#    depends_on:
+#      - app
+#    ports:
+#      - 8009:80
+#      - 8081:8080
+#    volumes:
+#      - "./traefik.dev.toml:/etc/traefik/traefik.toml"
+#      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+#    networks:
+#      - separated_network
 
 volumes:
   postgres_data:
