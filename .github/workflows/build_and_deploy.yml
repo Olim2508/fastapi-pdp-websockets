@@ -1,0 +1,88 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+#  build:
+#    name: Build Docker Image
+#    runs-on: ubuntu-latest
+#    env:
+#      IMAGE: ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog
+#      APP_IMAGE: ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog:app
+#      TRAEFIK_IMAGE: ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog:traefik
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v1
+#        with:
+#          username: ${{ secrets.DOCKER_USERNAME }}
+#          password: ${{ secrets.DOCKER_PASSWORD }}
+#
+#      - name: Add Env Variables
+#        run: |
+#          chmod +x ./setup_env.sh
+#          bash ./setup_env.sh
+#
+#      - name: Build Docker Images
+#        run: |
+#          docker pull $APP_IMAGE || true
+#          docker pull $TRAEFIK_IMAGE || true
+#          docker-compose -f prod.ci.yml build
+#          # docker build -t ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog:app -f docker/prod/web/prod.Dockerfile .
+#
+#      - name: Push Docker Images to Docker Hub
+#        run: |
+#          docker push $APP_IMAGE
+#          docker push $TRAEFIK_IMAGE
+#          # docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#          # docker push ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog:app
+
+  deploy:
+    name: Deploy FastAPI
+    runs-on: ubuntu-latest
+#    needs: build
+    steps:
+      - name: Set up ssh and Deploy
+        run: |
+          mkdir -p ~/.ssh
+          echo ${{ secrets.SSH_SECRET_KEY }} | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh/id_rsa
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_rsa
+          ssh-keyscan -H 'github.com' >> ~/.ssh/known_hosts
+          chmod +x ./deploy.sh
+          ssh -o StrictHostKeyChecking=no ec2-user@ec2-107-20-197-230.compute-1.amazonaws.com whoami
+#          scp  -o StrictHostKeyChecking=no -r ./.env ./prod.ci.yml ec2-user@ec2-107-20-197-230.compute-1.amazonaws.com:/home/ec2-user/ci-fastapi
+
+        
+        
+
+#      - name: Connect to Remote Server And Deploy
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ec2-107-20-197-230.compute-1.amazonaws.com
+#          username: ec2-user
+#          key: ${{ secrets.SSH_SECRET_KEY }}
+#          script: |
+#            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#            docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog:latest
+#            mkdir -p /home/ec2-user/ci-fastapi
+#            cd /home/ec2-user/ci-fastapi
+#            docker-compose -f docker-compose.prod.yml up -d
+#
+#      - name: Pull Docker Image on Remote Server
+#        run: |
+#          docker pull ${{ secrets.DOCKER_USERNAME }}/fastapi-pdp-blog:latest
+##          docker login -u $${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+##          docker pull olim2508/fastapi-pdp-blog:latest
+#
+#      - name: Deploy with Docker Compose on Remote Server
+#        run: |
+#          mkdir -p /home/ec2-user/fastapi-pdp-blog
+#          cd /home/ec2-user/fastapi-pdp-blog
+#          docker-compose -f docker-compose.prod.yml up -d

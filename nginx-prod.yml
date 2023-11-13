@@ -1,0 +1,74 @@
+version: '3.3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/prod/web/prod.Dockerfile
+#    platform: linux/amd64
+    volumes:
+      - ./app/:/usr/src/web/
+    expose:
+      - 8000
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: fastapi-backend.olim.space
+      LETSENCRYPT_HOST: fastapi-backend.olim.space
+    networks:
+      - separated_network
+    depends_on:
+      - db
+  db:
+    image: postgres:13
+    env_file:
+      - docker/dev/env/.db.env
+    networks:
+      - separated_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  nginx-proxy:
+    container_name: nginx-proxy
+#    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/prod/nginx/staging/Dockerfile
+    restart: always
+    ports:
+      - 443:443
+      - 80:80
+    volumes:
+      - certs:/etc/nginx/certs
+      - html:/usr/share/nginx/html
+      - vhost:/etc/nginx/vhost.d
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    depends_on:
+      - app
+    networks:
+      - separated_network
+  nginx-proxy-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    env_file:
+      - docker/prod/env/.prod.proxy-companion.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - html:/usr/share/nginx/html
+      - vhost:/etc/nginx/vhost.d
+      - acme:/etc/acme.sh
+    depends_on:
+      - nginx-proxy
+    networks:
+      - separated_network
+
+volumes:
+  postgres_data:
+#  static_volume:
+#  media_volume:
+  certs:
+  html:
+  vhost:
+  acme:
+
+networks:
+  separated_network:
+    driver: bridge

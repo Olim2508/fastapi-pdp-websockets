@@ -1,0 +1,81 @@
+[tool.poetry]
+name = "catapult-crown-backend"
+version = "0.1.0"
+description = ""
+authors = ["Trident"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.78.0"
+fastapi-pagination = "~=0.9"
+fastapi-cognito = "~=2.0"
+uvicorn = "~=0.17"
+gunicorn = "~=20.1"
+psycopg2-binary = "~=2.9"
+alembic = "~=1.7"
+SQLAlchemy = "~=1.4"
+SQLAlchemy-Utils = "~=0.38"
+PyJWT = "~=2.4"
+python-dotenv = "~=0.20"
+python-dateutil = "~=2.8"
+sentry-sdk = "~=1.5"
+boto3 = "1.21.3"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+black = "^22.3.0"
+isort = "^5.10.1"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+pytest-freezegun = "~=0.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+exclude = "alembic"
+skip-string-normalization = true
+
+[tool.pytest.ini_options]
+norecursedirs = [
+  ".git ",
+  "node_modules",
+]
+python_files = "test*.py"
+python_classes = "*Test*"
+log_cli = "true"
+log_cli_level = "info"
+
+
+[tool.coverage.run]
+omit = [
+  "*/alembic/*",
+  "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "^\\s*@(abc.)?abstractmethod",
+  "^\\s*@(typing.)?overload",
+  "^\\s*if (typing.)?TYPE_CHECKING:",
+  "^\\s*if (settings.)?DEBUG:",
+  "pragma: no ?cover",
+  "def __repr__",
+  "def __str__",
+  "if self.debug:",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.isort]
+multi_line_output = 3
+profile = "black"
+line_length = 110
+skip = ["alembic", ".cache"]
+include_trailing_comma = true

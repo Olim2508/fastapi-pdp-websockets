@@ -1,0 +1,66 @@
+version: "3.3"
+
+services:
+  app:
+#    image: "${APP_IMAGE}"
+    build:
+      context: .
+      dockerfile: docker/prod/web/prod.Dockerfile
+#      cache_from:
+#        - "${APP_IMAGE}"
+    expose:
+      - 8000
+#    ports:
+#      - 8018:8000
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`fastapi-backend.olim.space`)"
+      - "traefik.http.routers.fastapi.tls=true"
+      - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
+    volumes:
+      - ./app/:/usr/src/web/
+    restart: unless-stopped
+    networks:
+      - separated_network
+  db:
+    image: postgres:13
+    env_file:
+      - docker/prod/env/.db.env
+    networks:
+      - separated_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: always
+  traefik:
+    build:
+      context: .
+      dockerfile: docker/prod/web/traefik.Dockerfile
+#      cache_from:
+#        - "${TRAEFIK_IMAGE}"
+#    image: "${TRAEFIK_IMAGE}"
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik-public-certificates:/certificates"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`fastapi-traefik-dashboard.olim.space`) && (PathPrefix(`/`)"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=testuser:$$apr1$$jIKW.bdS$$eKXe4Lxjgy/rH65wP1iQe1"
+    networks:
+      - separated_network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  separated_network:
+    driver: bridge

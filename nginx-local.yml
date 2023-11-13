@@ -1,0 +1,50 @@
+version: "3.3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/dev/web/Dockerfile
+    image: "fastapi-pdp-nginx-app"
+    expose:
+      - 8000
+#    ports:
+#      - "8007:8000"
+    depends_on:
+      - db
+    volumes:
+      - ./app/:/usr/src/web/
+    restart: unless-stopped
+    networks:
+      - separated_network
+  db:
+    image: postgres:13
+    env_file:
+      - docker/dev/env/.db.env
+    networks:
+      - separated_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: always
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/prod/nginx/Dockerfile
+#    volumes:
+#      - static_volume:/home/app/web/staticfiles
+#      - media_volume:/home/app/web/mediafiles
+    ports:
+      - 1337:80
+    depends_on:
+      - app
+    networks:
+      - separated_network
+
+
+volumes:
+  postgres_data:
+
+
+networks:
+  separated_network:
+    driver: bridge
