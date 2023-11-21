@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     API_MAIN_PREFIX: str = '/api/v1'
     SECRET_KEY: str = secrets.token_urlsafe(32)
     SECRET_REFRESH_KEY: str = secrets.token_urlsafe(32)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 5
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     # 60 minutes * 24 hours * 8 days = 8 days
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 

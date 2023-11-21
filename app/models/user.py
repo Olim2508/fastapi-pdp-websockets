@@ -15,3 +15,6 @@ class User(Base, CreateUpdateDate):
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
     posts = relationship("Post", back_populates="author")
+
+    # for chat
+    conversations = relationship('Conversation', back_populates='participants')
